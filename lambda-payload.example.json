@@ -1,0 +1,8 @@
+{
+    "src_image_name": "docker.io/library/hello-world:latest",
+    "src_username": "YOUR_DOCKER_HUB_USERNAME",
+    "src_password": "YOUR_DOCKER_HUB_PASSWORD",
+    "dest_image_name": "registry.example.local/registry/hello-world:latest",
+    "dest_username": "testuser",
+    "dest_password": "abc123"
+}
