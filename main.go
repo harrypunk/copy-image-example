@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
+	"github.com/google/go-containerregistry/pkg/logs"
 )
 
 type ImageInfo struct {
@@ -64,6 +65,8 @@ func doCopy(inputEvent []byte) error {
 }
 
 func main() {
+	// logs.Debug.SetOutput(os.Stdout)
+	logs.Progress.SetOutput(os.Stdout)
 	log.Println("copy start")
 	for i, v := range os.Args {
 		log.Println(i, v)
