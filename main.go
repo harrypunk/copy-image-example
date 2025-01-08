@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
@@ -18,6 +19,34 @@ type ImageInfo struct {
 	DestPassword string `json:"dest_password"`
 }
 
+// Error: fetching "registry.example.com/namespace123/hello-world:latest": GET https://registry.example.com/service/token?scope=repository%namespace123%2Fhello-world%3Apull&service=token-service: unexpected status code 401 Unauthorized
+//
+// func (info ImageInfo) Get(serverURL string) (string, string, error) {
+// 	log.Println("ImageInfo helper serverURL", serverURL)
+// 	if strings.Contains(info.SrcUrl, serverURL) {
+// 		return info.SrcPassword, info.SrcPassword, nil
+// 	} else {
+// 		return info.DestPassword, info.DestPassword, nil
+// 	}
+// }
+
+// Resolve implements Keychain.
+func (info ImageInfo) Resolve(target authn.Resource) (authn.Authenticator, error) {
+	reg := target.RegistryStr()
+	log.Println("ImageInfo Resolve", reg)
+	if strings.Contains(info.SrcUrl, reg) {
+		return &authn.Basic{
+			Username: info.SrcUsername,
+			Password: info.SrcPassword,
+		}, nil
+	} else {
+		return &authn.Basic{
+			Username: info.DestUsername,
+			Password: info.DestPassword,
+		}, nil
+	}
+}
+
 func doCopy(inputEvent []byte) error {
 	var info ImageInfo
 	err := json.Unmarshal(inputEvent, &info)
@@ -25,16 +54,9 @@ func doCopy(inputEvent []byte) error {
 		return err
 	}
 
-	srcOption := crane.WithAuth(&authn.Basic{
-		Username: info.SrcUsername,
-		Password: info.SrcPassword,
-	})
-	destOption := crane.WithAuth(&authn.Basic{
-		Username: info.DestUsername,
-		Password: info.DestPassword,
-	})
+	keych := authn.NewMultiKeychain(info)
 
-	err = crane.Copy(info.SrcUrl, info.DestUrl, srcOption, destOption)
+	err = crane.Copy(info.SrcUrl, info.DestUrl, crane.WithAuthFromKeychain(keych))
 	if err != nil {
 		return err
 	}
@@ -43,7 +65,10 @@ func doCopy(inputEvent []byte) error {
 
 func main() {
 	log.Println("copy start")
-	filePath := os.Args[0]
+	for i, v := range os.Args {
+		log.Println(i, v)
+	}
+	filePath := os.Args[1]
 	bytes, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalln("read file failed", err.Error())
