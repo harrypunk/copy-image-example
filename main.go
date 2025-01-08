@@ -1,44 +1,47 @@
 package main
 
 import (
-	"context"
+	"encoding/json"
 	"log"
 
-	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/harrypunk/copy-image"
+	"github.com/google/go-containerregistry/pkg/authn"
+	"github.com/google/go-containerregistry/pkg/crane"
 )
 
-type CopyImageRequest struct {
-	SrcImageName  string `json:"src_image_name"`
-	SrcUsername   string `json:"src_username"`
-	SrcPassword   string `json:"src_password"`
-	DestImageName string `json:"dest_image_name"`
-	DestUsername  string `json:"dest_username"`
-	DestPassword  string `json:"dest_password"`
+type ImageInfo struct {
+	SrcUrl       string `json:"src-url"`
+	SrcUsername  string `json:"src-username"`
+	SrcPassword  string `json:"src-password"`
+	DestUrl      string `json:"dest-url"`
+	DestUsername string `json:"dest-username"`
+	DestPassword string `json:"dest-password"`
 }
 
-func handleRequest(ctx context.Context, request CopyImageRequest) (string, error) {
-	srcInfo := copy.ImageInfo{
-		ImageName: request.SrcImageName,
-		Username:  request.SrcUsername,
-		Password:  request.SrcPassword,
-	}
-
-	destInfo := copy.ImageInfo{
-		ImageName: request.DestImageName,
-		Username:  request.DestUsername,
-		Password:  request.DestPassword,
-	}
-
-	err := copy.CopyImage(srcInfo, destInfo)
+func doCopy(inputEvent string) error {
+	log.Println("copy start")
+	var info ImageInfo
+	err := json.Unmarshal([]byte(inputEvent), &info)
 	if err != nil {
-		log.Printf("Error copying image: %v", err)
-		return "Error", err
+		return err
 	}
 
-	return "Image copied successfully", nil
+	srcOption := crane.WithAuth(&authn.Basic{
+		Username: info.SrcUsername,
+		Password: info.SrcPassword,
+	})
+	destOption := crane.WithAuth(&authn.Basic{
+		Username: info.DestUsername,
+		Password: info.DestPassword,
+	})
+
+	err = crane.Copy(info.SrcUrl, info.DestUrl, srcOption, destOption)
+	if err != nil {
+		return err
+	}
+	log.Println("copy ok")
+
+	return nil
 }
 
 func main() {
-	lambda.Start(handleRequest)
 }
