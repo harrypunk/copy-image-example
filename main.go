@@ -11,7 +11,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/logs"
 )
 
-type ImageInfo struct {
+type imageInfo struct {
 	SrcUrl       string `json:"src_image_name"`
 	SrcUsername  string `json:"src_username"`
 	SrcPassword  string `json:"src_password"`
@@ -32,7 +32,7 @@ type ImageInfo struct {
 // }
 
 // Resolve implements Keychain.
-func (info ImageInfo) Resolve(target authn.Resource) (authn.Authenticator, error) {
+func (info imageInfo) Resolve(target authn.Resource) (authn.Authenticator, error) {
 	reg := target.RegistryStr()
 	log.Println("ImageInfo Resolve", reg)
 	if strings.Contains(info.SrcUrl, reg) {
@@ -48,20 +48,9 @@ func (info ImageInfo) Resolve(target authn.Resource) (authn.Authenticator, error
 	}
 }
 
-func doCopy(inputEvent []byte) error {
-	var info ImageInfo
-	err := json.Unmarshal(inputEvent, &info)
-	if err != nil {
-		return err
-	}
-
+func doCopy(info imageInfo) error {
 	keych := authn.NewMultiKeychain(info)
-
-	err = crane.Copy(info.SrcUrl, info.DestUrl, crane.WithAuthFromKeychain(keych))
-	if err != nil {
-		return err
-	}
-	return nil
+	return crane.Copy(info.SrcUrl, info.DestUrl, crane.WithAuthFromKeychain(keych))
 }
 
 func main() {
@@ -78,7 +67,13 @@ func main() {
 	if err != nil {
 		log.Fatalln("read file failed", err.Error())
 	}
-	err = doCopy(bytes)
+
+	var info imageInfo
+	err = json.Unmarshal(bytes, &info)
+	if err != nil {
+		log.Fatalln("json unmarshal failed", err.Error())
+	}
+	err = doCopy(info)
 	if err != nil {
 		log.Fatalln("copy failed", err.Error())
 	}
