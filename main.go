@@ -67,10 +67,12 @@ func doCopy(inputEvent []byte) error {
 func main() {
 	// logs.Debug.SetOutput(os.Stdout)
 	logs.Progress.SetOutput(os.Stdout)
+
 	log.Println("copy start")
 	for i, v := range os.Args {
 		log.Println(i, v)
 	}
+	// pass file path as an arg
 	filePath := os.Args[1]
 	bytes, err := os.ReadFile(filePath)
 	if err != nil {
