@@ -1,7 +1,10 @@
-.PHONY: build zip
+.PHONY: clean
 
-build:
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/bootstrap -tags lambda.norpc main.go
+build/bootstrap: example/aws-lambda/main.go
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ -tags lambda.norpc $<
 
-zip:
-	zip -j build/copy.zip build/bootstrap
+build/lambda-copy.zip: build/bootstrap
+	zip -j $@ $<
+
+clean:
+	rm build/*

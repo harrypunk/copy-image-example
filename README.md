@@ -3,7 +3,7 @@
 An example of copying docker image, with simple username password, between two registries with `crane`.
 
 ## TL,DR
-[Use multiple keychain][authnmulti] and implement `KeyChain` interface
+[Use multiple keychain](autnmulti) and implement `KeyChain` interface
 ```go
 func (obj MyOjbect) Resolve(target authn.Resource) (authn.Authenticator, error) {
 	reg := target.RegistryStr()
@@ -26,8 +26,8 @@ func main() {
 
 ```
 # Credits
-* `authn` readme: [google/go-containerregistry/pkg/authn][authnmulti]
-* Exmaple of copying to AWS ECR with helper: [ekirmayer/aws-lambda-copy-container-image-to-ecr][ekirmayer]
+* `authn` readme: [google/go-containerregistry/pkg/authn](authnmulti)
+* Exmaple of copying to AWS ECR with helper: [ekirmayer/aws-lambda-copy-container-image-to-ecr](ekirmayer)
 
 [authnmulti]:https://github.com/google/go-containerregistry/tree/main/pkg/authn#using-multiple-keychains
 [ekirmayer]:https://github.com/ekirmayer/aws-lambda-copy-container-image-to-ecr
