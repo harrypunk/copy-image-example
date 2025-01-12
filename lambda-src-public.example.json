@@ -1,0 +1,6 @@
+{
+  "src_image_name": "docker.io/library/hello:latest",
+  "dest_image_name": "registry.exampel.com/namespace/hello:latest",
+  "dest_username": "user789",
+  "dest_password": "password"
+}
